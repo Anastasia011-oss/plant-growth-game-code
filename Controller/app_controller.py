@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox
 from Model.model import Plant, Fertilizer
 from Controller.controller import PlotController
+from save_manager import save_game, load_game
 
 
 class AppController:
@@ -9,7 +10,6 @@ class AppController:
         self.root = tk.Tk()
         self.root.title("Ферма MVC")
 
-        # Данные игры
         self.balance = 50
         self.sell_prices = {
             1: 15,
@@ -32,7 +32,6 @@ class AppController:
         self.inventory = {f.key: 0 for f in self.fertilizers}
         self.barn = {}
 
-        # Верхнее меню
         top = tk.Frame(self.root)
         top.pack(pady=10)
 
@@ -42,22 +41,19 @@ class AppController:
         tk.Button(top, text="Купить удобрение", command=self.buy_fertilizer).pack(pady=5)
         tk.Button(top, text="Продать урожай", command=self.sell_crop).pack(pady=5)
 
-        # Грядки
         self.farm_frame = tk.Frame(self.root)
         self.farm_frame.pack(pady=10)
 
         self.plots = [PlotController(self.farm_frame, i, self) for i in range(4)]
 
-        # Амбар
         self.barn_label = tk.Label(self.root, text="Амбар: пусто")
         self.barn_label.pack()
 
+        self.load_saved_game()
+
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.root.mainloop()
-
-    # ---------------------------------------------
-    #                ЛОГИКА ИГРЫ
-    # ---------------------------------------------
 
     def buy_fertilizer(self):
         options = [f"{f.name} ({f.price}₴)" for f in self.fertilizers if f.key != "none"]
@@ -128,4 +124,59 @@ class AppController:
     def get_fertilizer(self, key):
         return next(x for x in self.fertilizers if x.key == key)
 
+
+    def on_close(self):
+        data = {
+            "balance": self.balance,
+            "inventory": self.inventory,
+            "barn": self.barn,
+            "plots": {}
+        }
+
+        for i, plot in enumerate(self.plots):
+            model = plot.model
+            data["plots"][str(i)] = {
+                "state": model.state,
+                "plant_id": model.plant.id if model.plant else None,
+                "remaining": model.remaining
+            }
+
+        save_game(data)
+        self.root.destroy()
+
+    def load_saved_game(self):
+        saved = load_game()
+        if not saved:
+            return
+
+        self.balance = saved["balance"]
+        self.inventory = saved["inventory"]
+        self.barn = saved["barn"]
+
+        self.update_balance()
+
+        if self.barn:
+            text = ", ".join(
+                f"{p.name}: {self.barn.get(str(p.id), 0)}"
+                for p in self.plants
+                if str(p.id) in self.barn
+            )
+            self.barn_label.config(text="Амбар: " + text)
+
+        for i, pdata in saved["plots"].items():
+            plot = self.plots[int(i)]
+            model = plot.model
+
+            model.state = pdata["state"]
+
+            if pdata["plant_id"]:
+                model.plant = self.get_plant(pdata["plant_id"])
+
+            model.remaining = pdata["remaining"]
+
+            if model.state == "growing":
+                plot.tick()
+
+            elif model.state == "ready":
+                plot.view.update_ready(model.plant.name)
 
