@@ -1,0 +1,31 @@
+{
+    "balance": 95,
+    "inventory": {
+        "none": 0,
+        "fast": 0,
+        "super": 0
+    },
+    "barn": {},
+    "plots": {
+        "0": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0
+        },
+        "1": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0
+        },
+        "2": {
+            "state": "ready",
+            "plant_id": 3,
+            "remaining": 0
+        },
+        "3": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0
+        }
+    }
+}
