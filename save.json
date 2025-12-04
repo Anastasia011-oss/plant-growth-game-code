@@ -1,5 +1,5 @@
 {
-    "balance": 95,
+    "balance": 395,
     "inventory": {
         "none": 0,
         "fast": 0,
@@ -18,8 +18,8 @@
             "remaining": 0
         },
         "2": {
-            "state": "ready",
-            "plant_id": 3,
+            "state": "empty",
+            "plant_id": null,
             "remaining": 0
         },
         "3": {
