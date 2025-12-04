@@ -30,6 +30,7 @@ class AppController:
         self.inventory = {f.key: 0 for f in self.fertilizers}
         self.barn = {}
 
+        # Верхняя панель
         top = tk.Frame(self.root)
         top.pack(pady=10)
         self.balance_label = tk.Label(top, text=f"Баланс: {self.balance}₴", font=("Arial", 14))
@@ -37,10 +38,12 @@ class AppController:
         tk.Button(top, text="Купить удобрение", command=self.buy_fertilizer).pack(pady=5)
         tk.Button(top, text="Продать урожай", command=self.sell_crop).pack(pady=5)
 
+        # Грядки
         self.farm_frame = tk.Frame(self.root)
         self.farm_frame.pack(pady=10)
         self.plots = [PlotView(self.farm_frame, i, self) for i in range(4)]
 
+        # Амбар
         self.barn_label = tk.Label(self.root, text="Амбар: пусто")
         self.barn_label.pack()
 
@@ -78,8 +81,13 @@ class AppController:
         self.balance_label.config(text=f"Баланс: {self.balance}₴")
 
     def add_to_barn(self, pid):
+        # Приводим ключ к int, чтобы он совпадал с plant.id
+        pid = int(pid)
         self.barn[pid] = self.barn.get(pid, 0) + 1
-        text = ", ".join(
-            f"{p.name}: {self.barn.get(p.id, 0)}" for p in self.plants if str(p.id) in self.barn
-        )
+        # Формируем текст для амбара
+        if not self.barn:
+            text = "пусто"
+        else:
+            text = ", ".join(f"{p.name}: {self.barn.get(p.id,0)}" for p in self.plants if p.id in self.barn)
         self.barn_label.config(text="Амбар: " + text)
+
