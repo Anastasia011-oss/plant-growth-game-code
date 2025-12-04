@@ -1,7 +1,7 @@
 import json
 import os
 
-SAVE_FILE = "save.json"
+SAVE_FILE = "save_backup.json"
 
 def save_game(data: dict):
     with open(SAVE_FILE, "w", encoding="utf-8") as f:

@@ -5,9 +5,9 @@ import os
 IMAGE_DIR = os.path.join(os.getcwd(), "image")
 
 class PlotView:
-    def __init__(self, root, index, controller):
+    def __init__(self, root, index, controller, saved_plot=None):
         self.controller = controller
-        self.model = None  # Здесь будет храниться модель растения
+        self.model = None  # Модель растения
         self.frame = tk.Frame(root, bd=2, relief="ridge", width=160, height=160)
         self.frame.grid(row=index // 3, column=index % 3, padx=5, pady=5)
         self.frame.grid_propagate(False)
@@ -50,7 +50,34 @@ class PlotView:
         self.btn = tk.Button(self.frame, text="Посадить", command=self.plant_window)
         self.btn.place(relx=0.5, rely=0.95, anchor="center")
 
-    # Окно выбора растения для посадки
+        # Восстанавливаем состояние из сохранения
+        if saved_plot:
+            self.load_saved(saved_plot)
+
+    def load_saved(self, data):
+        state = data.get("state")
+        plant_id = data.get("plant_id")
+        remaining = data.get("remaining", 0)
+
+        if state == "empty" or plant_id is None:
+            self.reset()
+        else:
+            from Model.plant_base import PlantModel
+            plant = next((p for p in self.controller.plants if p.id == plant_id), None)
+            if not plant:
+                self.reset()
+                return
+            self.model = PlantModel(plant)
+            self.model.state = state
+            self.model.remaining = remaining
+
+            # отображаем текущее состояние
+            if state == "growing":
+                self.update_growing(self.model.remaining // 1000, plant.name)
+                self.tick()
+            elif state == "ready":
+                self.update_ready(plant.name)
+
     def plant_window(self):
         options = [p.name for p in self.controller.plants]
         choice = simpledialog.askstring("Посадка", "Введите растение:\n" + "\n".join(options))
@@ -62,7 +89,6 @@ class PlotView:
             return
         self.plant_crop(plant)
 
-    # Посадка растения
     def plant_crop(self, plant):
         from Model.plant_base import PlantModel
         self.model = PlantModel(plant)
@@ -70,8 +96,8 @@ class PlotView:
         self.model.remaining = getattr(plant, "grow_time", 5000)
         self.update_growing(self.model.remaining // 1000, plant.name)
         self.tick()
+        self.controller.save_game()
 
-    # Обновление состояния роста
     def update_growing(self, sec, plant_name):
         plant_name = plant_name.lower()
         key = {
@@ -89,7 +115,6 @@ class PlotView:
         self.text_label.config(text=f"Растёт...\n{sec} сек")
         self.btn.config(state="disabled")
 
-    # Обновление состояния готовности
     def update_ready(self, plant_name):
         key = {
             "пшеница": "wheat_ready",
@@ -106,13 +131,12 @@ class PlotView:
         self.text_label.config(text=f"{plant_name.capitalize()}\nСозрело!")
         self.btn.config(state="normal", text="Собрать", command=self.collect_crop)
 
-    # Сбор урожая
     def collect_crop(self):
         if self.model and self.model.plant:
             self.controller.add_to_barn(self.model.plant.id)
         self.reset()
+        self.controller.save_game()
 
-    # Сброс состояния поля
     def reset(self):
         img = self.images["empty"]
         self.img_label.config(image=img)
@@ -120,16 +144,19 @@ class PlotView:
         self.text_label.config(text="Пусто")
         self.btn.config(text="Посадить", command=self.plant_window, state="normal")
         self.model = None
+        self.controller.save_game()
 
-    # Таймер роста
     def tick(self):
         if not self.model or self.model.state != "growing":
             return
 
         self.model.remaining -= 1000
         if self.model.remaining <= 0:
+            self.model.remaining = 0
             self.model.state = "ready"
             self.update_ready(self.model.plant.name)
+            self.controller.save_game()
         else:
             self.update_growing(self.model.remaining // 1000, self.model.plant.name)
+            self.controller.save_game()
             self.frame.after(1000, self.tick)

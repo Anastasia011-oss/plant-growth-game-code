@@ -1,15 +1,17 @@
 {
-    "balance": 395,
+    "balance": 670,
+    "barn": {
+        "6": 1
+    },
     "inventory": {
         "none": 0,
         "fast": 0,
         "super": 0
     },
-    "barn": {},
     "plots": {
         "0": {
-            "state": "empty",
-            "plant_id": null,
+            "state": "ready",
+            "plant_id": 3,
             "remaining": 0
         },
         "1": {

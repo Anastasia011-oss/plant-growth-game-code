@@ -3,13 +3,13 @@ from tkinter import simpledialog, messagebox
 from Model.plant_base import Plant
 from Model.fertilizer import Fertilizer
 from View.plot_view import PlotView
+from save_manager import save_game, load_game
 
 class AppController:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Ферма MVC")
 
-        self.balance = 50
         self.sell_prices = {1: 15, 2: 30, 3: 60, 4: 50, 5: 70, 6: 40}
 
         self.plants = [
@@ -27,8 +27,18 @@ class AppController:
             Fertilizer("super", "Суперудобрение", 0.6, 20),
         ]
 
-        self.inventory = {f.key: 0 for f in self.fertilizers}
-        self.barn = {}
+        # Загружаем сохранение, если есть
+        saved_data = load_game()
+        if saved_data:
+            self.balance = saved_data.get("balance", 50)
+            self.barn = {int(k): v for k, v in saved_data.get("barn", {}).items()}
+            self.inventory = saved_data.get("inventory", {f.key: 0 for f in self.fertilizers})
+            self.saved_plots = saved_data.get("plots", {})
+        else:
+            self.balance = 50
+            self.barn = {}
+            self.inventory = {f.key: 0 for f in self.fertilizers}
+            self.saved_plots = {}
 
         # Верхняя панель
         top = tk.Frame(self.root)
@@ -41,11 +51,15 @@ class AppController:
         # Грядки
         self.farm_frame = tk.Frame(self.root)
         self.farm_frame.pack(pady=10)
-        self.plots = [PlotView(self.farm_frame, i, self) for i in range(4)]
+        self.plots = []
+        for i in range(4):
+            plot_data = self.saved_plots.get(str(i))
+            self.plots.append(PlotView(self.farm_frame, i, self, saved_plot=plot_data))
 
         # Амбар
-        self.barn_label = tk.Label(self.root, text="Амбар: пусто")
+        self.barn_label = tk.Label(self.root, text="")
         self.barn_label.pack()
+        self.update_barn_label()  # сразу показываем сохранённый амбар
 
         self.root.mainloop()
 
@@ -64,6 +78,7 @@ class AppController:
         self.balance -= fert.price
         self.inventory[fert.key] += 1
         self.update_balance()
+        self.save_game()
         messagebox.showinfo("Куплено", f"Вы купили {fert.name}.\nВ инвентаре: {self.inventory[fert.key]}")
 
     def sell_crop(self):
@@ -74,20 +89,46 @@ class AppController:
         self.balance += earned
         self.update_balance()
         self.barn = {}
-        self.barn_label.config(text="Амбар: пусто")
+        self.update_barn_label()
+        self.save_game()
         messagebox.showinfo("Продано!", f"Вы заработали {earned}₴")
 
     def update_balance(self):
         self.balance_label.config(text=f"Баланс: {self.balance}₴")
 
     def add_to_barn(self, pid):
-        # Приводим ключ к int, чтобы он совпадал с plant.id
         pid = int(pid)
         self.barn[pid] = self.barn.get(pid, 0) + 1
-        # Формируем текст для амбара
+        self.update_barn_label()
+        self.save_game()  # сохраняем после добавления
+
+    def update_barn_label(self):
         if not self.barn:
             text = "пусто"
         else:
-            text = ", ".join(f"{p.name}: {self.barn.get(p.id,0)}" for p in self.plants if p.id in self.barn)
+            text = ", ".join(f"{p.name}: {self.barn.get(p.id,0)}" for p in self.plants if self.barn.get(p.id,0) > 0)
         self.barn_label.config(text="Амбар: " + text)
 
+    def save_game(self):
+        # Сохраняем грядки
+        plots_data = {}
+        for idx, plot in enumerate(self.plots):
+            if plot.model:
+                plots_data[str(idx)] = {
+                    "state": plot.model.state,
+                    "plant_id": plot.model.plant.id,
+                    "remaining": plot.model.remaining
+                }
+            else:
+                plots_data[str(idx)] = {
+                    "state": "empty",
+                    "plant_id": None,
+                    "remaining": 0
+                }
+
+        save_game({
+            "balance": self.balance,
+            "barn": self.barn,
+            "inventory": self.inventory,
+            "plots": plots_data
+        })
