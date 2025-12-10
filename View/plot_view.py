@@ -1,77 +1,55 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
-import os
-
-IMAGE_DIR = os.path.join(os.getcwd(), "image")
+from pathlib import Path
 
 class PlotView:
     def __init__(self, root, index, controller, saved_plot=None):
         self.controller = controller
-        self.model = None  # Модель растения
+        self.model = None
         self.frame = tk.Frame(root, bd=2, relief="ridge", width=160, height=160)
         self.frame.grid(row=index // 3, column=index % 3, padx=5, pady=5)
         self.frame.grid_propagate(False)
 
-        # Загружаем изображения
-        self.images = {
-            "empty": tk.PhotoImage(width=160, height=160),  # пустое поле
-            "wheat_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_wheat.PNG")),
-            "wheat_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_wheat.png")),
-            "wheat_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_wheat_is_ripe.png")),
-            "grapes_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_grapes.png")),
-            "grapes_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_grapes.png")),
-            "grapes_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_grapes_is_ripe.png")),
-            "pineapple_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_pineapple.png")),
-            "pineapple_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_pineapple.png")),
-            "pineapple_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_pineapple_is_ripe.png")),
-            "apple_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_apple_tree.png")),
-            "apple_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_apple_tree.png")),
-            "apple_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_apple_tree_is_ripe.png")),
-            "melon_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_melon.png")),
-            "melon_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_melon.png")),
-            "melon_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_melon_is_ripe.png")),
-            "sunflower_stage1": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "little_sunflower.png")),
-            "sunflower_stage2": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "medium_sunflower.png")),
-            "sunflower_ready": tk.PhotoImage(file=os.path.join(IMAGE_DIR, "the_sunflower_is_ripe.png")),
-        }
+        self.images = {"empty": tk.PhotoImage(width=160, height=160)}
+        resources_path = Path(__file__).parent.parent / "Resources"
+        images_path = resources_path / "Images"
 
-        # Метка с изображением
+        for plant_id, plant in self.controller.resources["plants"].items():
+            for key, rel_path in plant.get("images", {}).items():
+                full_path = images_path / Path(rel_path).name  # берём только имя файла
+                if full_path.exists():
+                    self.images[f"{plant['name'].lower()}_{key}"] = tk.PhotoImage(file=str(full_path))
+
         self.img_label = tk.Label(self.frame, image=self.images["empty"])
         self.img_label.place(relx=0.5, rely=0.45, anchor="center")
 
-        # Текстовая метка
-        self.text_label = tk.Label(
-            self.frame, text="Пусто", font=("Arial", 10),
-            wraplength=150, justify="center"
-        )
+        self.text_label = tk.Label(self.frame, text="Пусто", font=("Arial", 10),
+                                   wraplength=150, justify="center")
         self.text_label.place(relx=0.5, rely=0.9, anchor="center")
 
-        # Кнопка посадки / сбора
         self.btn = tk.Button(self.frame, text="Посадить", command=self.plant_window)
         self.btn.place(relx=0.5, rely=0.95, anchor="center")
 
-        # Восстанавливаем состояние из сохранения
         if saved_plot:
             self.load_saved(saved_plot)
 
     def load_saved(self, data):
-        state = data.get("state")
+        state = data.get("state", "empty")
         plant_id = data.get("plant_id")
         remaining = data.get("remaining", 0)
 
         if state == "empty" or plant_id is None:
             self.reset()
         else:
-            from Model.plant_base import PlantModel
             plant = next((p for p in self.controller.plants if p.id == plant_id), None)
             if not plant:
                 self.reset()
                 return
+            from Model.plant_base import PlantModel
             self.model = PlantModel(plant)
             self.model.state = state
             self.model.remaining = remaining
 
-            # отображаем текущее состояние
             if state == "growing":
                 self.update_growing(self.model.remaining // 1000, plant.name)
                 self.tick()
@@ -79,15 +57,36 @@ class PlotView:
                 self.update_ready(plant.name)
 
     def plant_window(self):
-        options = [p.name for p in self.controller.plants]
-        choice = simpledialog.askstring("Посадка", "Введите растение:\n" + "\n".join(options))
-        if not choice:
-            return
-        plant = next((p for p in self.controller.plants if p.name.lower() == choice.lower()), None)
-        if not plant:
-            messagebox.showerror("Ошибка", "Такого растения нет")
-            return
-        self.plant_crop(plant)
+        win = tk.Toplevel(self.frame)
+        win.title("Посадка")
+        win.grab_set()
+
+        tk.Label(win, text="Выберите растение:", font=("Arial", 11, "bold")).pack(pady=5)
+
+        plant_var = tk.StringVar()
+
+        for plant in self.controller.plants:
+            tk.Radiobutton(
+                win,
+                text=plant.name,
+                variable=plant_var,
+                value=plant.name,
+                anchor="w"
+            ).pack(fill="x", padx=15)
+
+        def on_ok():
+            choice = plant_var.get()
+            if not choice:
+                messagebox.showwarning("Ошибка", "Выберите растение")
+                return
+
+            plant = next((p for p in self.controller.plants if p.name.lower() == choice.lower()), None)
+            if plant:
+                self.plant_crop(plant)
+
+            win.destroy()
+
+        tk.Button(win, text="OK", width=10, command=on_ok).pack(pady=10)
 
     def plant_crop(self, plant):
         from Model.plant_base import PlantModel
@@ -99,36 +98,27 @@ class PlotView:
         self.controller.save_game()
 
     def update_growing(self, sec, plant_name):
-        plant_name = plant_name.lower()
-        key = {
-            "пшеница": "wheat_stage1" if sec > 2500 else "wheat_stage2",
-            "виноград": "grapes_stage1" if sec > 2000 else "grapes_stage2",
-            "ананас": "pineapple_stage1" if sec > 4000 else "pineapple_stage2",
-            "яблоня": "apple_stage1" if sec > 3500 else "apple_stage2",
-            "дыня": "melon_stage1" if sec > 4000 else "melon_stage2",
-            "подсолнух": "sunflower_stage1" if sec > 1500 else "sunflower_stage2"
-        }.get(plant_name, "empty")
+        name = plant_name.lower()
+        grow_time = 5000
+        for pid, pdata in self.controller.resources["plants"].items():
+            if pdata["name"].lower() == name:
+                grow_time = pdata.get("grow_time", 5000)
+                break
 
-        img = self.images[key]
+        key = f"{name}_stage1" if sec > grow_time // 2 else f"{name}_stage2"
+        img = self.images.get(key, self.images["empty"])
+
         self.img_label.config(image=img)
         self.img_label.image = img
         self.text_label.config(text=f"Растёт...\n{sec} сек")
         self.btn.config(state="disabled")
 
     def update_ready(self, plant_name):
-        key = {
-            "пшеница": "wheat_ready",
-            "виноград": "grapes_ready",
-            "ананас": "pineapple_ready",
-            "яблоня": "apple_ready",
-            "дыня": "melon_ready",
-            "подсолнух": "sunflower_ready"
-        }.get(plant_name.lower(), "empty")
-
-        img = self.images[key]
+        key = f"{plant_name.lower()}_ready"
+        img = self.images.get(key, self.images["empty"])
         self.img_label.config(image=img)
         self.img_label.image = img
-        self.text_label.config(text=f"{plant_name.capitalize()}\nСозрело!")
+        self.text_label.config(text=f"{plant_name}\nСозрело!")
         self.btn.config(state="normal", text="Собрать", command=self.collect_crop)
 
     def collect_crop(self):
@@ -158,5 +148,4 @@ class PlotView:
             self.controller.save_game()
         else:
             self.update_growing(self.model.remaining // 1000, self.model.plant.name)
-            self.controller.save_game()
             self.frame.after(1000, self.tick)
