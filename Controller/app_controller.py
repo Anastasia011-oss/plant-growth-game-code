@@ -1,46 +1,52 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
+from pathlib import Path
 from Model.plant_base import Plant
 from Model.fertilizer import Fertilizer
 from View.plot_view import PlotView
 from save_manager import save_game, load_game
+from Services.ResourceService import ResourceService
 
 class AppController:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Ферма MVC")
 
-        self.sell_prices = {1: 15, 2: 30, 3: 60, 4: 50, 5: 70, 6: 40}
+        self.images_dir = Path(__file__).parent.parent / "Images"
+
+        self.resources = ResourceService.load_resources()
 
         self.plants = [
-            Plant(1, "Пшеница", 5000),
-            Plant(2, "Виноград", 4000),
-            Plant(3, "Ананас", 9000),
-            Plant(4, "Яблоня", 6000),
-            Plant(5, "Дыня", 7000),
-            Plant(6, "Подсолнух", 3000),
+            Plant(
+                int(pid),
+                pdata["name"],
+                pdata["grow_time"],
+                images={stage: str(self.images_dir / Path(path).name) for stage, path in pdata.get("images", {}).items()}
+            )
+            for pid, pdata in self.resources["plants"].items()
         ]
 
         self.fertilizers = [
-            Fertilizer("none", "Без удобрения", 1.0, 0),
-            Fertilizer("fast", "Обычное удобрение", 0.8, 10),
-            Fertilizer("super", "Суперудобрение", 0.6, 20),
+            Fertilizer(key, fdata["name"], fdata["multiplier"], fdata["price"])
+            for key, fdata in self.resources["fertilizers"].items()
         ]
 
-        # Загружаем сохранение, если есть
+        self.sell_prices = {int(pid): pdata["sell_price"] for pid, pdata in self.resources["plants"].items()}
+
+        self.plot_count = self.resources["plots"]["count"]
+        self.balance = self.resources["player"]["starting_balance"]
+
         saved_data = load_game()
         if saved_data:
-            self.balance = saved_data.get("balance", 50)
+            self.balance = saved_data.get("balance", self.balance)
             self.barn = {int(k): v for k, v in saved_data.get("barn", {}).items()}
             self.inventory = saved_data.get("inventory", {f.key: 0 for f in self.fertilizers})
             self.saved_plots = saved_data.get("plots", {})
         else:
-            self.balance = 50
             self.barn = {}
             self.inventory = {f.key: 0 for f in self.fertilizers}
             self.saved_plots = {}
 
-        # Верхняя панель
         top = tk.Frame(self.root)
         top.pack(pady=10)
         self.balance_label = tk.Label(top, text=f"Баланс: {self.balance}₴", font=("Arial", 14))
@@ -48,18 +54,16 @@ class AppController:
         tk.Button(top, text="Купить удобрение", command=self.buy_fertilizer).pack(pady=5)
         tk.Button(top, text="Продать урожай", command=self.sell_crop).pack(pady=5)
 
-        # Грядки
         self.farm_frame = tk.Frame(self.root)
         self.farm_frame.pack(pady=10)
         self.plots = []
-        for i in range(4):
+        for i in range(self.plot_count):
             plot_data = self.saved_plots.get(str(i))
             self.plots.append(PlotView(self.farm_frame, i, self, saved_plot=plot_data))
 
-        # Амбар
         self.barn_label = tk.Label(self.root, text="")
         self.barn_label.pack()
-        self.update_barn_label()  # сразу показываем сохранённый амбар
+        self.update_barn_label()
 
         self.root.mainloop()
 
@@ -100,7 +104,7 @@ class AppController:
         pid = int(pid)
         self.barn[pid] = self.barn.get(pid, 0) + 1
         self.update_barn_label()
-        self.save_game()  # сохраняем после добавления
+        self.save_game()
 
     def update_barn_label(self):
         if not self.barn:
@@ -110,7 +114,6 @@ class AppController:
         self.barn_label.config(text="Амбар: " + text)
 
     def save_game(self):
-        # Сохраняем грядки
         plots_data = {}
         for idx, plot in enumerate(self.plots):
             if plot.model:

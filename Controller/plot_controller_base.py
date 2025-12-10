@@ -1,3 +1,4 @@
+import tkinter as tk
 from Model.plant_base import PlantModel
 from View.plot_view import PlotView
 
@@ -5,10 +6,9 @@ class PlotControllerBase:
     def __init__(self, root, index, app_controller):
         self.app_controller = app_controller
         self.model = None
-        self.view = PlotView(root, index, self)  # создаём вид при инициализации
+        self.view = PlotView(root, index, self)
 
     def open_plant_window(self):
-        # Окно выбора растения
         options = [p.name for p in self.app_controller.plants]
         choice = tk.simpledialog.askstring("Посадить", "Выберите растение:\n" + "\n".join(options))
         if not choice:
