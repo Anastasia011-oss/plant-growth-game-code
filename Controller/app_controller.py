@@ -5,7 +5,7 @@ from Model.plant_base import Plant
 from Model.fertilizer import Fertilizer
 from View.plot_view import PlotView
 from save_manager import save_game, load_game
-from Services.ResourceService import load_resources
+from Services.ResourceService import ResourceService
 
 class AppController:
     def __init__(self):
@@ -14,10 +14,15 @@ class AppController:
 
         self.images_dir = Path(__file__).parent.parent / "Images"
 
-        self.resources = load_resources()
+        self.resources = ResourceService.load_resources()
 
         self.plants = [
-            Plant(int(pid), pdata["name"], pdata["grow_time"])
+            Plant(
+                int(pid),
+                pdata["name"],
+                pdata["grow_time"],
+                images={stage: str(self.images_dir / Path(path).name) for stage, path in pdata.get("images", {}).items()}
+            )
             for pid, pdata in self.resources["plants"].items()
         ]
 
