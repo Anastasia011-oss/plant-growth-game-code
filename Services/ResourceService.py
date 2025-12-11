@@ -69,6 +69,37 @@ class ResourceService:
                         "stage2": "Images/medium_sunflower.png",
                         "ready": "Images/the_sunflower_is_ripe.png"
                     }
+                },
+                # ---- новые растения ----
+                "7": {
+                    "name": "Банан",
+                    "grow_time": 5000,
+                    "sell_price": 35,
+                    "images": {
+                        "stage1": "Images/little_banana.png",
+                        "stage2": "Images/medium_banana.png",
+                        "ready": "Images/the_banana_is_ripe.png"
+                    }
+                },
+                "8": {
+                    "name": "Перец",
+                    "grow_time": 4500,
+                    "sell_price": 28,
+                    "images": {
+                        "stage1": "Images/little_pepper.png",
+                        "stage2": "Images/medium_pepper.png",
+                        "ready": "Images/the_pepper_is_ripe.png"
+                    }
+                },
+                "9": {
+                    "name": "Слива",
+                    "grow_time": 4800,
+                    "sell_price": 30,
+                    "images": {
+                        "stage1": "Images/little_plum.png",
+                        "stage2": "Images/medium_plum.png",
+                        "ready": "Images/the_plum_is_ripe.png"
+                    }
                 }
             },
             "fertilizers": {
