@@ -1,30 +1,78 @@
 {
-    "balance": 395,
-    "barn": {
-        "4": 1,
-        "2": 1,
-        "3": 1
-    },
+    "balance": 760,
+    "barn": {},
     "inventory": {
         "none": 0,
-        "fast": 1,
-        "super": 0
+        "fast": 7,
+        "super": 15
     },
     "plots": {
         "0": {
-            "state": "empty",
-            "plant_id": null,
-            "remaining": 0
+            "state": "ready",
+            "plant_id": 9,
+            "remaining": 0,
+            "fertilizer_count": 0
         },
         "1": {
-            "state": "empty",
-            "plant_id": null,
-            "remaining": 0
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
         },
         "2": {
             "state": "ready",
             "plant_id": 4,
-            "remaining": 0
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "3": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "4": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "5": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "6": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "7": {
+            "state": "ready",
+            "plant_id": 8,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "8": {
+            "state": "ready",
+            "plant_id": 9,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "9": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "10": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0,
+            "fertilizer_count": 0
         }
-    }
+    },
+    "plot_count": 11
 }
