@@ -3,12 +3,14 @@ from tkinter import simpledialog, messagebox
 from pathlib import Path
 
 class PlotView:
-    def __init__(self, root, index, controller, saved_plot=None):
+    def __init__(self, root, index, controller, saved_plot=None, fertilizer_count=0):
         self.controller = controller
         self.model = None
-        self.frame = tk.Frame(root, bd=2, relief="ridge", width=160, height=160)
+        self.fertilizer_count = 0
+
+        self.frame = tk.Canvas(root, width=160, height=160, bd=0, highlightthickness=0)
         self.frame.grid(row=index // 3, column=index % 3, padx=5, pady=5)
-        self.frame.grid_propagate(False)
+        self.draw_3d_border()
 
         self.images = {"empty": tk.PhotoImage(width=160, height=160)}
         resources_path = Path(__file__).parent.parent / "Resources"
@@ -16,15 +18,15 @@ class PlotView:
 
         for plant_id, plant in self.controller.resources["plants"].items():
             for key, rel_path in plant.get("images", {}).items():
-                full_path = images_path / Path(rel_path).name  # берём только имя файла
+                full_path = images_path / Path(rel_path).name
                 if full_path.exists():
                     self.images[f"{plant['name'].lower()}_{key}"] = tk.PhotoImage(file=str(full_path))
 
-        self.img_label = tk.Label(self.frame, image=self.images["empty"])
+        self.img_label = tk.Label(self.frame, image=self.images["empty"], bd=0)
         self.img_label.place(relx=0.5, rely=0.45, anchor="center")
 
         self.text_label = tk.Label(self.frame, text="Пусто", font=("Arial", 10),
-                                   wraplength=150, justify="center")
+                                   wraplength=150, justify="center", bd=0)
         self.text_label.place(relx=0.5, rely=0.9, anchor="center")
 
         self.btn = tk.Button(self.frame, text="Посадить", command=self.plant_window)
@@ -33,10 +35,17 @@ class PlotView:
         if saved_plot:
             self.load_saved(saved_plot)
 
+    def draw_3d_border(self):
+        self.frame.create_line(0, 0, 160, 0, fill="#CCCCCC", width=3)
+        self.frame.create_line(0, 0, 0, 160, fill="#CCCCCC", width=3)
+        self.frame.create_line(0, 160, 160, 160, fill="#666666", width=3)
+        self.frame.create_line(160, 0, 160, 160, fill="#666666", width=3)
+
     def load_saved(self, data):
         state = data.get("state", "empty")
         plant_id = data.get("plant_id")
         remaining = data.get("remaining", 0)
+        self.fertilizer_count = data.get("fertilizer_count", 0)
 
         if state == "empty" or plant_id is None:
             self.reset()
@@ -62,17 +71,11 @@ class PlotView:
         win.grab_set()
 
         tk.Label(win, text="Выберите растение:", font=("Arial", 11, "bold")).pack(pady=5)
-
         plant_var = tk.StringVar()
 
         for plant in self.controller.plants:
-            tk.Radiobutton(
-                win,
-                text=plant.name,
-                variable=plant_var,
-                value=plant.name,
-                anchor="w"
-            ).pack(fill="x", padx=15)
+            tk.Radiobutton(win, text=plant.name, variable=plant_var,
+                           value=plant.name, anchor="w").pack(fill="x", padx=15)
 
         def on_ok():
             choice = plant_var.get()
@@ -92,11 +95,21 @@ class PlotView:
         from Model.plant_base import PlantModel
         self.model = PlantModel(plant)
         self.model.state = "growing"
-        self.model.remaining = getattr(plant, "grow_time", 5000)
+
+        grow_time = getattr(plant, "grow_time", 5000)
+
+        if self.fertilizer_count >= 5:
+            self.model.remaining = 1000
+        else:
+            # обычный рост с бонусом удобрений
+            fert_bonus = 1 + 0.1 * self.fertilizer_count
+            self.model.remaining = int(grow_time / fert_bonus)
+
         self.update_growing(self.model.remaining // 1000, plant.name)
         self.tick()
         self.controller.save_game()
 
+    # ---- Обновление роста ----
     def update_growing(self, sec, plant_name):
         name = plant_name.lower()
         grow_time = 5000
@@ -113,6 +126,7 @@ class PlotView:
         self.text_label.config(text=f"Растёт...\n{sec} сек")
         self.btn.config(state="disabled")
 
+    # ---- Готово к сбору ----
     def update_ready(self, plant_name):
         key = f"{plant_name.lower()}_ready"
         img = self.images.get(key, self.images["empty"])
@@ -121,12 +135,16 @@ class PlotView:
         self.text_label.config(text=f"{plant_name}\nСозрело!")
         self.btn.config(state="normal", text="Собрать", command=self.collect_crop)
 
+    # ---- Сбор урожая ----
     def collect_crop(self):
         if self.model and self.model.plant:
             self.controller.add_to_barn(self.model.plant.id)
+        # расходуем одно удобрение
+        self.fertilizer_count = max(0, self.fertilizer_count - 1)
         self.reset()
         self.controller.save_game()
 
+    # ---- Сброс грядки ----
     def reset(self):
         img = self.images["empty"]
         self.img_label.config(image=img)
@@ -136,6 +154,7 @@ class PlotView:
         self.model = None
         self.controller.save_game()
 
+    # ---- Таймер роста ----
     def tick(self):
         if not self.model or self.model.state != "growing":
             return
