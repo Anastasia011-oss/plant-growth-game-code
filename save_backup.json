@@ -1,15 +1,17 @@
 {
-    "balance": 760,
-    "barn": {},
+    "balance": 1810,
+    "barn": {
+        "3": 1
+    },
     "inventory": {
         "none": 0,
-        "fast": 7,
-        "super": 15
+        "fast": 8,
+        "super": 18
     },
     "plots": {
         "0": {
-            "state": "ready",
-            "plant_id": 9,
+            "state": "empty",
+            "plant_id": null,
             "remaining": 0,
             "fertilizer_count": 0
         },
@@ -21,7 +23,7 @@
         },
         "2": {
             "state": "ready",
-            "plant_id": 4,
+            "plant_id": 9,
             "remaining": 0,
             "fertilizer_count": 0
         },
@@ -32,38 +34,38 @@
             "fertilizer_count": 0
         },
         "4": {
-            "state": "ready",
-            "plant_id": 4,
+            "state": "empty",
+            "plant_id": null,
             "remaining": 0,
             "fertilizer_count": 0
         },
         "5": {
             "state": "ready",
-            "plant_id": 4,
+            "plant_id": 5,
             "remaining": 0,
             "fertilizer_count": 0
         },
         "6": {
             "state": "ready",
-            "plant_id": 4,
+            "plant_id": 8,
             "remaining": 0,
             "fertilizer_count": 0
         },
         "7": {
             "state": "ready",
-            "plant_id": 8,
+            "plant_id": 3,
             "remaining": 0,
             "fertilizer_count": 0
         },
         "8": {
             "state": "ready",
-            "plant_id": 9,
+            "plant_id": 6,
             "remaining": 0,
             "fertilizer_count": 0
         },
         "9": {
-            "state": "empty",
-            "plant_id": null,
+            "state": "ready",
+            "plant_id": 4,
             "remaining": 0,
             "fertilizer_count": 0
         },
