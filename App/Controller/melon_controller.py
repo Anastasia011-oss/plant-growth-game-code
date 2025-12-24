@@ -1,9 +1,9 @@
-from Model.pineapple import PineappleModel
-from Controller.plot_controller_base import PlotControllerBase
+from App.Model.melon import MelonModel
+from App.Controller.plot_controller_base import PlotControllerBase
 
-class PineappleController(PlotControllerBase):
+class MelonController(PlotControllerBase):
     def start_growth(self, fert, win):
-        self.model = PineappleModel()
+        self.model = MelonModel()
         if fert.key != "none":
             self.app_controller.inventory[fert.key] -= 1
         win.destroy()

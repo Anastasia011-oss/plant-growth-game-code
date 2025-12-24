@@ -1,6 +1,6 @@
 import tkinter as tk
-from Model.plant_base import PlantModel
-from View.plot_view import PlotView
+from App.Model.plant_base import PlantModel
+from App.View.plot_view import PlotView
 
 class PlotControllerBase:
     def __init__(self, root, index, app_controller):

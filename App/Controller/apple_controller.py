@@ -1,5 +1,5 @@
-from Model.apple import AppleModel
-from Controller.plot_controller_base import PlotControllerBase
+from App.Model.apple import AppleModel
+from App.Controller.plot_controller_base import PlotControllerBase
 
 class AppleController(PlotControllerBase):
     def start_growth(self, fert, win):

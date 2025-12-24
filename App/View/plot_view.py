@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import messagebox
 from pathlib import Path
 
 class PlotView:
@@ -54,7 +54,7 @@ class PlotView:
             if not plant:
                 self.reset()
                 return
-            from Model.plant_base import PlantModel
+            from App.Model.plant_base import PlantModel
             self.model = PlantModel(plant)
             self.model.state = state
             self.model.remaining = remaining
@@ -114,7 +114,7 @@ class PlotView:
 
     # ---- метод реальной посадки ----
     def plant(self, plant):
-        from Model.plant_base import PlantModel
+        from App.Model.plant_base import PlantModel
         self.model = PlantModel(plant)
         self.model.state = "growing"
 

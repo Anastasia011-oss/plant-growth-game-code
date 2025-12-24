@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from pathlib import Path
-from Model.plant_base import Plant
-from Model.fertilizer import Fertilizer
-from Model.mission import Mission
-from View.plot_view import PlotView
-from save_manager import save_game, load_game
-from Services.ResourceService import ResourceService
+from App.Model.plant_base import Plant
+from App.Model.fertilizer import Fertilizer
+from App.Model.mission import Mission
+from App.View.plot_view import PlotView
+from App.save_manager import save_game, load_game
+from App.Services.ResourceService import ResourceService
 import logging
 
 def setup_logger():
@@ -336,7 +336,6 @@ class AppController:
                     "remaining": 0,
                     "fertilizer_count": 0
                 }
-        # --- Сохраняем миссии ---
         missions_data = {}
         for mission in self.missions:
             missions_data[str(mission.id)] = {
