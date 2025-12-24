@@ -1,5 +1,5 @@
-from Model.plot_entity import PlotEntity
-from DTO.plot_dto import PlotDTO
+from App.Model.plot_entity import PlotEntity
+from App.DTO.plot_dto import PlotDTO
 
 class PlotMapper:
     @staticmethod

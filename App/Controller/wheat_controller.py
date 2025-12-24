@@ -1,9 +1,9 @@
-from Model.melon import MelonModel
-from Controller.plot_controller_base import PlotControllerBase
+from App.Model.wheat import WheatModel
+from App.Controller.plot_controller_base import PlotControllerBase
 
-class MelonController(PlotControllerBase):
+class WheatController(PlotControllerBase):
     def start_growth(self, fert, win):
-        self.model = MelonModel()
+        self.model = WheatModel()
         if fert.key != "none":
             self.app_controller.inventory[fert.key] -= 1
         win.destroy()

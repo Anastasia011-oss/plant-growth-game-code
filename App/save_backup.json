@@ -1,0 +1,162 @@
+{
+    "balance": 2560,
+    "barn": {
+        "3": 3,
+        "4": 2,
+        "8": 4,
+        "1": 1,
+        "2": 1
+    },
+    "inventory": {
+        "none": 0,
+        "fast": 0,
+        "super": 13
+    },
+    "plots": {
+        "0": {
+            "state": "ready",
+            "plant_id": 9,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "1": {
+            "state": "empty",
+            "plant_id": null,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "2": {
+            "state": "ready",
+            "plant_id": 7,
+            "remaining": 0,
+            "fertilizer_count": 5
+        },
+        "3": {
+            "state": "ready",
+            "plant_id": 9,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "4": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "5": {
+            "state": "ready",
+            "plant_id": 5,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "6": {
+            "state": "ready",
+            "plant_id": 2,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "7": {
+            "state": "ready",
+            "plant_id": 7,
+            "remaining": 0,
+            "fertilizer_count": 5
+        },
+        "8": {
+            "state": "ready",
+            "plant_id": 6,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "9": {
+            "state": "ready",
+            "plant_id": 4,
+            "remaining": 0,
+            "fertilizer_count": 0
+        },
+        "10": {
+            "state": "ready",
+            "plant_id": 7,
+            "remaining": 0,
+            "fertilizer_count": 0
+        }
+    },
+    "plot_count": 11,
+    "missions": {
+        "1": {
+            "progress": 0,
+            "completed": false
+        },
+        "2": {
+            "progress": 0,
+            "completed": false
+        },
+        "3": {
+            "progress": 0,
+            "completed": false
+        },
+        "4": {
+            "progress": 0,
+            "completed": false
+        },
+        "5": {
+            "progress": 1,
+            "completed": true
+        },
+        "6": {
+            "progress": 1,
+            "completed": false
+        },
+        "7": {
+            "progress": 1,
+            "completed": false
+        },
+        "8": {
+            "progress": 0,
+            "completed": false
+        },
+        "9": {
+            "progress": 0,
+            "completed": false
+        },
+        "10": {
+            "progress": 0,
+            "completed": false
+        },
+        "11": {
+            "progress": 0,
+            "completed": false
+        },
+        "12": {
+            "progress": 0,
+            "completed": false
+        },
+        "13": {
+            "progress": 0,
+            "completed": false
+        },
+        "14": {
+            "progress": 0,
+            "completed": false
+        },
+        "15": {
+            "progress": 0,
+            "completed": false
+        },
+        "16": {
+            "progress": 0,
+            "completed": false
+        },
+        "17": {
+            "progress": 0,
+            "completed": false
+        },
+        "18": {
+            "progress": 0,
+            "completed": false
+        },
+        "19": {
+            "progress": 1,
+            "completed": false
+        }
+    }
+}

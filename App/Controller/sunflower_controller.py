@@ -1,5 +1,5 @@
-from Model.sunflower import SunflowerModel
-from Controller.plot_controller_base import PlotControllerBase
+from App.Model.sunflower import SunflowerModel
+from App.Controller.plot_controller_base import PlotControllerBase
 
 class SunflowerController(PlotControllerBase):
     def start_growth(self, fert, win):

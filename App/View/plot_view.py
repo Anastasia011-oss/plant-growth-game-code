@@ -1,12 +1,12 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import messagebox
 from pathlib import Path
 
 class PlotView:
     def __init__(self, root, index, controller, saved_plot=None, fertilizer_count=0):
         self.controller = controller
         self.model = None
-        self.fertilizer_count = 0
+        self.fertilizer_count = fertilizer_count
 
         self.frame = tk.Canvas(root, width=160, height=160, bd=0, highlightthickness=0)
         self.frame.grid(row=index // 3, column=index % 3, padx=5, pady=5)
@@ -54,7 +54,7 @@ class PlotView:
             if not plant:
                 self.reset()
                 return
-            from Model.plant_base import PlantModel
+            from App.Model.plant_base import PlantModel
             self.model = PlantModel(plant)
             self.model.state = state
             self.model.remaining = remaining
@@ -72,38 +72,55 @@ class PlotView:
 
         tk.Label(win, text="Выберите растение:", font=("Arial", 11, "bold")).pack(pady=5)
         plant_var = tk.StringVar()
-
         for plant in self.controller.plants:
             tk.Radiobutton(win, text=plant.name, variable=plant_var,
                            value=plant.name, anchor="w").pack(fill="x", padx=15)
 
+        # Выбор удобрения
+        tk.Label(win, text="Выберите удобрение (опционально):", font=("Arial", 11, "bold")).pack(pady=5)
+        fert_var = tk.StringVar(value="none")
+        for fert in self.controller.fertilizers:
+            tk.Radiobutton(win, text=f"{fert.name} ({fert.price}₴)", variable=fert_var,
+                           value=fert.key, anchor="w").pack(fill="x", padx=15)
+
         def on_ok():
-            choice = plant_var.get()
-            if not choice:
+            plant_choice = plant_var.get()
+            fert_choice = fert_var.get()
+            if not plant_choice:
                 messagebox.showwarning("Ошибка", "Выберите растение")
                 return
 
-            plant = next((p for p in self.controller.plants if p.name.lower() == choice.lower()), None)
+            plant = next((p for p in self.controller.plants if p.name.lower() == plant_choice.lower()), None)
             if plant:
-                self.plant_crop(plant)
+                self.plant_crop(plant, fert_choice)
 
             win.destroy()
 
         tk.Button(win, text="OK", width=10, command=on_ok).pack(pady=10)
 
-    def plant_crop(self, plant):
-        from Model.plant_base import PlantModel
+    # ---- метод, который вызывается кнопкой ----
+    def plant_crop(self, plant, fert_key="none"):
+        fert_count_to_use = 0
+        if fert_key != "none" and self.controller.inventory.get(fert_key, 0) > 0:
+            # используем максимум 5, но если меньше в инвентаре — используем столько, сколько есть
+            fert_count_to_use = min(5, self.controller.inventory[fert_key])
+            self.controller.inventory[fert_key] -= fert_count_to_use
+            # засчитываем прогресс только по фактическому количеству использованных удобрений
+            if fert_count_to_use > 0:
+                self.controller.update_missions("fertilizer", fert_count_to_use)
+
+        self.fertilizer_count = fert_count_to_use
+        self.controller.plant_seed(self.controller.plots.index(self), plant.id)
+
+    # ---- метод реальной посадки ----
+    def plant(self, plant):
+        from App.Model.plant_base import PlantModel
         self.model = PlantModel(plant)
         self.model.state = "growing"
 
         grow_time = getattr(plant, "grow_time", 5000)
-
-        if self.fertilizer_count >= 5:
-            self.model.remaining = 1000
-        else:
-            # обычный рост с бонусом удобрений
-            fert_bonus = 1 + 0.1 * self.fertilizer_count
-            self.model.remaining = int(grow_time / fert_bonus)
+        fert_bonus = 1 + 0.1 * self.fertilizer_count
+        self.model.remaining = int(grow_time / fert_bonus) if self.fertilizer_count < 5 else 1000
 
         self.update_growing(self.model.remaining // 1000, plant.name)
         self.tick()
@@ -139,7 +156,6 @@ class PlotView:
     def collect_crop(self):
         if self.model and self.model.plant:
             self.controller.add_to_barn(self.model.plant.id)
-        # расходуем одно удобрение
         self.fertilizer_count = max(0, self.fertilizer_count - 1)
         self.reset()
         self.controller.save_game()

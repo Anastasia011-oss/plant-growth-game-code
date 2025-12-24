@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import os
 
+
 class ResourceService:
     resources_dir = Path(__file__).parent.parent / "Resources"
     resources_file = resources_dir / "game_resources.json"
@@ -70,7 +71,6 @@ class ResourceService:
                         "ready": "Images/the_sunflower_is_ripe.png"
                     }
                 },
-                # ---- новые растения ----
                 "7": {
                     "name": "Банан",
                     "grow_time": 5000,
@@ -102,13 +102,58 @@ class ResourceService:
                     }
                 }
             },
+
             "fertilizers": {
                 "none": {"name": "Без удобрения", "multiplier": 1.0, "price": 0},
                 "fast": {"name": "Обычное удобрение", "multiplier": 0.8, "price": 10},
                 "super": {"name": "Суперудобрение", "multiplier": 0.6, "price": 20}
             },
-            "plots": {"count": 4},
-            "player": {"starting_balance": 50}
+
+            "plots": {
+                "count": 4
+            },
+
+            "player": {
+                "starting_balance": 50
+            },
+
+            "missions": [
+                {
+                    "id": 1,
+                    "description": "Посадить 3 растения",
+                    "type": "plant",
+                    "target": 3,
+                    "reward": 50
+                },
+                {
+                    "id": 2,
+                    "description": "Собрать 5 урожаев",
+                    "type": "harvest",
+                    "target": 5,
+                    "reward": 100
+                },
+                {
+                    "id": 3,
+                    "description": "Продать урожай 1 раз",
+                    "type": "sell",
+                    "target": 1,
+                    "reward": 70
+                },
+                {
+                    "id": 4,
+                    "description": "Купить 1 удобрение",
+                    "type": "fertilizer",
+                    "target": 1,
+                    "reward": 30
+                },
+                {
+                    "id": 5,
+                    "description": "Купить 1 грядку",
+                    "type": "plot",
+                    "target": 1,
+                    "reward": 150
+                }
+            ]
         }
 
         os.makedirs(ResourceService.resources_dir, exist_ok=True)
@@ -145,10 +190,16 @@ class ResourceService:
         resources = ResourceService.load_resources()
         return resources["player"]["starting_balance"]
 
+    @staticmethod
+    def get_missions():
+        resources = ResourceService.load_resources()
+        return resources.get("missions", [])
+
 
 if __name__ == "__main__":
     ResourceService.create_resources_file()
-    print("Растения:", ResourceService.get_plant(1))
+    print("Растение 1:", ResourceService.get_plant(1))
     print("Удобрение fast:", ResourceService.get_fertilizer("fast"))
     print("Количество грядок:", ResourceService.get_plot_count())
     print("Стартовый баланс:", ResourceService.get_starting_balance())
+    print("Миссии:", ResourceService.get_missions())
